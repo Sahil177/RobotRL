@@ -14,19 +14,19 @@ supervisor = Supervisor()
 # get the time step of the current world.
 timestep = 64
 
-red_node = supervisor.getFromDef('bot_red')
-#red_block = supervisor.getFromDef('Block_R1')
-
 contact_boundary = ['r_gripper_right', 'r_gripper_left' , 'bot_red', 'bot_blue', 'b_gripper_right', 'b_gripper_left']
 
+ilegal_contacts = {('bot_red', 'bot_blue'):  -20}
 
 block_nodes = []
 for i in range(4):
-	block_node = supervisor.getFromDef('Block_R' + str(int(i+1)))
-	block_nodes.append(block_node)
+    block_node = supervisor.getFromDef('Block_R' + str(int(i+1)))
+    block_nodes.append(block_node)
+    ilegal_contacts[('bot_blue','Block_R' + str(int(i+1)))] = -5
 for i in range(4):
-	block_node = supervisor.getFromDef('Block_B' + str(int(i+1)))
-	block_nodes.append(block_node)
+    block_node = supervisor.getFromDef('Block_B' + str(int(i+1)))
+    block_nodes.append(block_node)
+    ilegal_contacts[('bot_red','Block_B' + str(int(i+1)))] = -5
 
 robot_nodes = [supervisor.getFromDef('bot_red'), supervisor.getFromDef('bot_blue')]
 
@@ -54,42 +54,17 @@ def collisions():
     for obj, point in colliding:
         collision_dict[tuple(point)].append(obj)
     
-    collisions = [val for key, val in collision_dict.items()]
+    collisions = [tuple(val) for key, val in collision_dict.items()]
+    ilegal_collisions = [collision for collision in collisions if collision in ilegal_contacts]
 
 
-    return collisions
-
-    
-
-
-
-
-    
-
-    
+    return ilegal_collisions
 
 
 # Main loop:
 # - perform simulation steps until Webots is stopping the controller
 while supervisor.step(timestep) != -1:
-    
-    '''contacts = red_node.getContactPoints(includeDescendants=True)
-    print([contact.get_node_id() for contact in contacts])
-    print([contact.point for contact in contacts])
-    print([contact.get_point() for contact in contacts])
-    contacts_id = [supervisor.getFromId(contact.node_id) for contact in contacts]
-    contacts_name = [(contact.getDef(), contact.getPosition()) for contact in contacts_id]
-    print(contacts_name[0])'''
 
     print(collisions())
-
-    # Read the sensors:
-    # Enter here functions to read sensor data, like:
-    #  val = ds.getValue()
-
-    # Process sensor data here.
-
-    # Enter here functions to send actuator commands, like:
-    #  motor.setPosition(10.0)
 
 # Enter here exit cleanup code.
