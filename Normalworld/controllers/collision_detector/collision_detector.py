@@ -55,7 +55,7 @@ def collisions():
     ilegal_collisions = [collision for collision in collisions if collision in ilegal_contacts]
 
 
-    return ilegal_collisions
+    return set(ilegal_collisions)
 
 def done(time):
     done = True
@@ -86,16 +86,47 @@ def done(time):
                 return done
     
     return done
-        
 
+def current_grid_score():
+    score = 0
+    for block in block_nodes:
+        if block.getDef()[6] == 'R':
+            pos = block.getPosition()
+            if 0.8 < pos[0] < 1.2 and 0.8<pos[2] < 1.2:
+                score += 20
+        else:
+            pos = block.getPosition()
+            if  0.8 < pos[0] < 1.2 and -1.2<pos[2] < -0.8:
+                score +=20 
+    
+    if score >= 40:
+        for robot in robot_nodes:
+            if robot.getDef()[4] == 'r':
+                pos = robot.getPosition()
+                if 0.8 < pos[0] < 1.2 and 0.8<pos[2] < 1.2:
+                    score += 20
+            else:
+                pos = robot.getPosition()
+                if 0.8 < pos[0] < 1.2 and -1.2<pos[2] < -0.8:
+                    score += 20
+    
+    return score
+
+        
+score = 0
 i =0
 # Main loop:
 # - perform simulation steps until Webots is stopping the controller
 while supervisor.step(timestep) != -1:
     i +=1
     time = i*timestep/1000
+    current_collisions = collisions()
+    print(f"score: {score}, collisions: {current_collisions}")
+    for collision in current_collisions:
+        score += ilegal_contacts[collision]
     if done(time):
-        print('Done!')
-    print(collisions())
+        final_score = score + current_grid_score()
+        print(f"Total score: {final_score}, Time: {time}")
+        supervisor.simulationSetMode(0)
 
 # Enter here exit cleanup code.
