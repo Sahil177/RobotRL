@@ -71,7 +71,7 @@ while master_robot.step(TIME_STEP) != -1:
 		# if n == 800:
 		# 	red_bot.set_state("block_update_routine", grip=1, env=environment)
 		# 	red_bot.set_state('go_to_target', target = (int(target[0]), int(target[1])), early_stop = 5, grip = 0, block= True, empty = True, away = -1, optimise_heading =  False, speed=1)
-
+		'''
 		print("====")
 		print("Blue bot current task: ", blue_bot_state_manager.current_task)
 		print("Blue bot state: ", blue_bot.state)
@@ -80,7 +80,7 @@ while master_robot.step(TIME_STEP) != -1:
 		print("Red bot state: ", red_bot.state)
 		#print("Red Current target: ", red_current_target)
 		print("Blocks found: \n", environment.blocks)
-
+		'''
 		driving_grid, reduced_driving_grid = environment.driving_grid()
 		blue_bot.update_driveable_area(driving_grid, reduced_driving_grid)
 		red_bot.update_driveable_area(driving_grid, reduced_driving_grid)

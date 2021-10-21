@@ -6,10 +6,12 @@ from controller import Robot, Motor
 from controller import GPS
 from controller import Emitter
 from controller import Camera
+from controller import Node
 import struct
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage.draw import line
+
 
 #test 
 TIME_STEP = 64
@@ -41,6 +43,7 @@ ps = []
 psNames = [
 	'ds_right', 'ds_left'
 ]
+
 
 for i in range(2):
 	ps.append(robot.getDevice(psNames[i]))
@@ -87,22 +90,36 @@ def grip(grip_pos):
 
 grip(0)
 
+
 while robot.step(TIME_STEP) != -1:
 
 	psValues = []
 	for i in range(2):
 		psValues.append(ps[i].getValue())
+
 	
 	rad = np.arctan2(compass.getValues()[0],compass.getValues()[2])
 
 	global_position = [main_gps.getValues()[2],main_gps.getValues()[0], rad]
 
-	image = colour_sensor.getImageArray()
-	red   = image[0][0][0]
-	green = image[0][0][1]
-	blue  = image[0][0][2]
-	gray  = (red + green + blue) / 3
-	
+	#image = colour_sensor.getImageArray()
+
+	#red   = image[0][0][0]
+	#green = image[0][0][1]
+	#blue  = image[0][0][2]
+	#gray  = (red + green + blue) / 3
+
+	color_data = colour_sensor.getImage()
+	red = colour_sensor.imageGetRed(color_data, colour_sensor.getWidth(), 0,0)
+	blue = colour_sensor.imageGetBlue(color_data, colour_sensor.getWidth(), 0,0)
+	green = colour_sensor.imageGetGreen(color_data, colour_sensor.getWidth(), 0,0)
+	gray = colour_sensor.imageGetGray(color_data, colour_sensor.getWidth(), 0,0)
+
+	#red = int(color_data[2])
+	#green = int(color_data[1])
+	#blue = int(color_data[0])
+	#gray = (red + green + blue) / 3
+
 	if red > 1.5*gray:
 		#print('red')
 		detected_colour = 2
