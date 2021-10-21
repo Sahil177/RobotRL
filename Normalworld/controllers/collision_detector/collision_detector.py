@@ -1,14 +1,11 @@
 """collision_detector controller."""
 
-# You may need to import some classes of the controller module. Ex:
-#  from controller import Robot, Motor, DistanceSensor
 from collections import defaultdict
 from controller import Robot
 from controller import Supervisor
 from controller import Node
 from controller import ContactPoint
 
-# create the Robot instance.
 supervisor = Supervisor()
 
 # get the time step of the current world.
@@ -60,11 +57,45 @@ def collisions():
 
     return ilegal_collisions
 
+def done(time):
+    done = True
+    if time >= 300:
+        return done
+    for block in block_nodes:
+        if block.getDef()[6] == 'R':
+            pos = block.getPosition()
+            if not 0.8 < pos[0] < 1.2 or not 0.8<pos[2] < 1.2:
+                done = False
+                return done
+        else:
+            pos = block.getPosition()
+            if not 0.8 < pos[0] < 1.2 or not -1.2<pos[2] < -0.8:
+                done = False
+                return done
+    
+    for robot in robot_nodes:
+        if robot.getDef()[4] == 'r':
+            pos = robot.getPosition()
+            if not 0.8 < pos[0] < 1.2 or not 0.8<pos[2] < 1.2:
+                done = False
+                return done
+        else:
+            pos = robot.getPosition()
+            if not 0.8 < pos[0] < 1.2 or not -1.2<pos[2] < -0.8:
+                done = False
+                return done
+    
+    return done
+        
 
+i =0
 # Main loop:
 # - perform simulation steps until Webots is stopping the controller
 while supervisor.step(timestep) != -1:
-
+    i +=1
+    time = i*timestep/1000
+    if done(time):
+        print('Done!')
     print(collisions())
 
 # Enter here exit cleanup code.
