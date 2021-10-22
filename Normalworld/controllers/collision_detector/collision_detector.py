@@ -11,8 +11,6 @@ supervisor = Supervisor()
 # get the time step of the current world.
 timestep = 64
 
-contact_boundary = ['r_gripper_right', 'r_gripper_left' , 'bot_red', 'bot_blue', 'b_gripper_right', 'b_gripper_left']
-
 ilegal_contacts = {('bot_red', 'bot_blue'):  -20}
 
 block_nodes = []
@@ -27,7 +25,8 @@ for i in range(4):
 
 robot_nodes = [supervisor.getFromDef('bot_red'), supervisor.getFromDef('bot_blue')]
 
-def collisions():
+def collisions(robot_nodes, block_nodes, ilegal_contacts):
+    contact_boundary = ['r_gripper_right', 'r_gripper_left' , 'bot_red', 'bot_blue', 'b_gripper_right', 'b_gripper_left']
     colliding = []
     for node in robot_nodes:
         contacts = node.getContactPoints(includeDescendants=True)
@@ -99,7 +98,12 @@ def current_grid_score():
             if  0.8 < pos[0] < 1.2 and -1.2<pos[2] < -0.8:
                 score +=20 
     
-    if score >= 40:
+    return score
+
+
+def robot_bonus(boxes_delivered):
+    score =0
+    if boxes_delivered >= 40:
         for robot in robot_nodes:
             if robot.getDef()[4] == 'r':
                 pos = robot.getPosition()
@@ -109,23 +113,23 @@ def current_grid_score():
                 pos = robot.getPosition()
                 if 0.8 < pos[0] < 1.2 and -1.2<pos[2] < -0.8:
                     score += 20
-    
     return score
 
+
         
-score = 0
+penalties = 0
 i =0
 # Main loop:
 # - perform simulation steps until Webots is stopping the controller
 while supervisor.step(timestep) != -1:
     i +=1
     time = i*timestep/1000
-    current_collisions = collisions()
-    print(f"score: {score}, collisions: {current_collisions}")
+    current_collisions = collisions(robot_nodes, block_nodes, ilegal_contacts)
     for collision in current_collisions:
-        score += ilegal_contacts[collision]
+        penalties += ilegal_contacts[collision]
+    print(f"score: {penalties + current_grid_score()}, collisions: {current_collisions}")
     if done(time):
-        final_score = score + current_grid_score()
+        final_score = penalties + current_grid_score() + robot_bonus(current_grid_score())
         print(f"Total score: {final_score}, Time: {time}")
         supervisor.simulationSetMode(0)
 
