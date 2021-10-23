@@ -221,7 +221,7 @@ DEF WALL_4 Solid {
 }
 Robot {
   name "Evaluator"
-  controller "collision_detector"
+  controller "Evaluator"
   supervisor TRUE
 }
 Robot {
@@ -238,6 +238,7 @@ Robot {
   supervisor TRUE
 }
 Robot {
+  name "grid reset"
   controller "sac_controller"
   supervisor TRUE
 }
@@ -316,8 +317,8 @@ DEF bot_blue Robot {
             }
           ]
           endPoint DEF b_wheel2 Solid {
-            translation -0.06000042302466102 -8.473671200130524e-07 0.0500031646017861
-            rotation 0.06766047616930414 -0.0676607110070128 0.9954115169871045 1.5753990359591556
+            translation -0.06000042302466102 -8.473671200159697e-07 0.0500031646017861
+            rotation 0.06766047616930419 -0.0676607110070128 0.9954115169871045 1.5753990359591556
             children [
               DEF WHEEL Shape {
                 appearance PBRAppearance {
@@ -361,8 +362,8 @@ DEF bot_blue Robot {
             }
           ]
           endPoint DEF b_wheel1 Solid {
-            translation 0.05999957699371228 1.6164588765682335e-06 0.05000306146499479
-            rotation -0.11420326936826167 0.11420370330821816 0.9868713834215118 1.584015165606465
+            translation 0.05999957699371228 1.6164588765648804e-06 0.05000306146499479
+            rotation -0.11420326936826211 0.11420370330821829 0.9868713834215118 1.5840151656064627
             children [
               DEF WHEEL Shape {
                 appearance PBRAppearance {
@@ -437,8 +438,8 @@ DEF bot_blue Robot {
                 }
               ]
               endPoint DEF b_gripper_right Solid {
-                translation -9.940157376894843e-06 1.0643246747228613e-05 0.020093903438313968
-                rotation -0.9999999999997974 1.0555330858191768e-07 6.280303295091616e-07 0.4251530268607311
+                translation -9.940157376894765e-06 1.0643246747228613e-05 0.020093903438313968
+                rotation -0.9999999999997974 1.0555330858189907e-07 6.28030329509054e-07 0.4251530268607416
                 scale 0.8 0.8 0.8
                 children [
                   DEF FINGER_SHAPE Transform {
@@ -601,8 +602,8 @@ DEF bot_blue Robot {
                 }
               ]
               endPoint DEF b_gripper_left Solid {
-                translation -7.3646650356971855e-06 -4.811783453695938e-06 0.019997565681636176
-                rotation 3.8620472284690995e-07 -0.21097869664387484 0.9774906595780355 3.141589781708873
+                translation -7.364665035697111e-06 -4.811783453695938e-06 0.019997565681636176
+                rotation 3.8620472284319634e-07 -0.21097869664387484 0.9774906595780355 3.141589781708873
                 scale 0.8 0.8 0.8
                 children [
                   USE FINGER_SHAPE
@@ -706,8 +707,8 @@ DEF bot_red Robot {
             }
           ]
           endPoint DEF r_wheel2 Solid {
-            translation -0.06000042302466102 -8.473671200135834e-07 0.0500031646017861
-            rotation 0.06766047616930478 -0.06766071100701304 0.9954115169871044 1.575399035959155
+            translation -0.06000042302466102 -8.473671200149331e-07 0.0500031646017861
+            rotation 0.06766047616930478 -0.06766071100701299 0.9954115169871044 1.575399035959155
             children [
               DEF WHEEL Shape {
                 appearance PBRAppearance {
@@ -751,8 +752,8 @@ DEF bot_red Robot {
             }
           ]
           endPoint DEF r_wheel1 Solid {
-            translation 0.05999957699371228 1.6164588765637229e-06 0.05000306146499479
-            rotation -0.11420326936826268 0.11420370330821732 0.9868713834215118 1.584015165606467
+            translation 0.05999957699371228 1.61645887656301e-06 0.05000306146499479
+            rotation -0.11420326936826287 0.11420370330821718 0.9868713834215118 1.584015165606467
             children [
               DEF WHEEL Shape {
                 appearance PBRAppearance {
@@ -825,8 +826,8 @@ DEF bot_red Robot {
                 }
               ]
               endPoint DEF r_gripper_right Solid {
-                translation -9.94015737689486e-06 1.0643246747228613e-05 0.020093903438313968
-                rotation -0.9999999999997973 1.0555330858191972e-07 6.280303295091736e-07 0.42515302686073636
+                translation -9.940157376894778e-06 1.064324674722866e-05 0.020093903438313968
+                rotation -0.9999999999997974 1.0555330858192063e-07 6.280303295091789e-07 0.42515302686073947
                 scale 0.8 0.8 0.8
                 children [
                   DEF FINGER_SHAPE Transform {
@@ -989,8 +990,8 @@ DEF bot_red Robot {
                 }
               ]
               endPoint DEF r_gripper_left Solid {
-                translation -7.364665035697201e-06 -4.811783453695937e-06 0.019997565681636176
-                rotation 3.8620472284603687e-07 -0.2109786966438743 0.9774906595780355 3.141589781708873
+                translation -7.364665035697123e-06 -4.811783453696236e-06 0.019997565681636176
+                rotation 3.862047228315978e-07 -0.2109786966438744 0.9774906595780356 3.141589781708873
                 scale 0.8 0.8 0.8
                 children [
                   USE FINGER_SHAPE
