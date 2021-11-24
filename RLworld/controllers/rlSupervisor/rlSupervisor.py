@@ -7,12 +7,14 @@ for path in packages:
 import numpy as np
 from utils import *
 from reward_function import *
+from DDPG import *
 from skimage.draw import line, rectangle, rectangle_perimeter, ellipse, polygon
 from skimage.feature import blob_dog
 from skimage.filters import gaussian
 from deepbots.supervisor.controllers.supervisor_emitter_receiver import SupervisorCSV
 from pprint import pprint
-
+import torch
+torch.cuda_path
 from controller import Emitter
 from controller import Receiver
 ####Import RL agent 
@@ -27,13 +29,12 @@ class RLSupervisor(SupervisorCSV):
         self.robot_nodes = [self.supervisor.getFromDef('bot_red'), self.supervisor.getFromDef('bot_blue')]
         self.bot_red = self.supervisor.getFromDef('bot_red')
         self.bot_blue = self.supervisor.getFromDef('bot_blue')
-        self.red_state = [self.bot_red.getPosition()[0], self.bot_red.getPosition()[2], np.pi, 0, 0] # [ x, z, theta, colour, gripper_state]
-        self.blue_state = [self.bot_blue.getPosition()[0], self.bot_blue.getPosition()[2], 0, 0, 0] # [ x, z, theta, colour, gripper_state]
+        self.red_state = [self.bot_red.getPosition()[2], self.bot_red.getPosition()[0], -np.pi/2, 0, 0] # [ x, z, theta, colour, gripper_state]
+        self.blue_state = [self.bot_blue.getPosition()[2], self.bot_blue.getPosition()[0], np.pi/2, 0, 0] # [ x, z, theta, colour, gripper_state]
         self.occupancy_grid = np.full((80,80), 0.5)
         self._extent = np.array([[6, -4],[-7, -4],[-7, 4],[6, 3]])
         self.episodeCount = 0
-        self.episodeLimit = 10000  # Max number of episodes allowed
-        self.stepsPerEpisode = 200  # Max number of steps per episode
+        self.episodeLimit = 50  # Max number of episodes allowed
         self.episodeScore = 0  # Score accumulated during an episode
         self.episodeScoreList = []  # A list to save all the episode scores, used to check if task is solved
         self.emitter.setChannel(Emitter.CHANNEL_BROADCAST)
@@ -52,8 +53,8 @@ class RLSupervisor(SupervisorCSV):
             self.block_nodes.append(block_node)
             self.ilegal_contacts[('bot_red','Block_B' + str(int(i+1)))] = -5
         self.prev_grid_score = 0
+        self.curr_ts = 0
         self.time = 0
-        print
 
     def await_state_data(self):
         state_update = False
@@ -76,6 +77,7 @@ class RLSupervisor(SupervisorCSV):
                 temp = robot_data[0]
                 robot_data[0] = robot_data[1]
                 robot_data[1] = temp
+        
         return robot_data, state_update
 
     def update_binary_occupancy_grid(self, robot_data):
@@ -118,15 +120,17 @@ class RLSupervisor(SupervisorCSV):
         if update:
             self.update_binary_occupancy_grid(robot_data)
             for data in robot_data:
+                #print(data)
                 if data[0] == 0:
                     self.red_state = [data[1], data[2], data[3], data[6], data[7]]
                 else:
                     self.blue_state = [data[1], data[2], data[3] ,data[6], data[7]]
 
-        return [self.red_state, self.blue_state, self.occupancy_grid]            
+        return self.red_state + self.blue_state + list(np.ndarray.flatten(self.occupancy_grid))    
         
     def get_reward(self, action):
         self.time += self.get_timestep()/1000
+        self.curr_ts += self.get_timestep()
         current_reward, curr_grid_score = step_reward(self.robot_nodes, self.block_nodes, self.ilegal_contacts, self.prev_grid_score, self.time, self.supervisor)
         self.prev_grid_score = curr_grid_score
         return current_reward
@@ -139,15 +143,17 @@ class RLSupervisor(SupervisorCSV):
         #self.supervisor.simulationReset()
         self.supervisor.simulationResetPhysics()
         self.grid_reset.restartController()
-        self.red_state = [self.bot_red.getPosition()[0], self.bot_red.getPosition()[2], np.pi, 0, 0] # [ x, z, theta, colour, gripper_state]
-        self.blue_state = [self.bot_blue.getPosition()[0], self.bot_blue.getPosition()[2], 0, 0, 0] # [ x, z, theta, colour, gripper_state]
+        self.red_state = [self.bot_red.getPosition()[2], self.bot_red.getPosition()[0], -np.pi/2, 0, 0] # [ x, z, theta, colour, gripper_state]
+        self.blue_state = [self.bot_blue.getPosition()[2], self.bot_blue.getPosition()[0], np.pi/2, 0, 0] # [ x, z, theta, colour, gripper_state]
         self.occupancy_grid = np.full((80,80), 0.5)
         self.prev_grid_score = 0
+        self.episodeScore = 0
         self.time = 0
+        self.curr_ts = 0
         for node in self.robot_nodes:
             node.restartController()
         
-        return [self.red_state, self.blue_state, self.occupancy_grid]
+        return self.red_state + self.blue_state + list(np.ndarray.flatten(self.occupancy_grid))
         
     
     def get_info(self):
@@ -156,32 +162,72 @@ class RLSupervisor(SupervisorCSV):
     def solved(self):
         return None
 
-print("beginning")
+#print("beginning")
 supervisor = RLSupervisor()
 #pprint(vars(supervisor))
 
-def agent():
-    return [5+np.random.uniform(-10,5), 5+np.random.uniform(-10,5), 5+np.random.choice([0,1], p = [0.8, 0.2]), 5+np.random.uniform(-10,5), np.random.uniform(-10,5), np.random.choice([0,1], p = [0.8, 0.2])]
+memory_size = 20000
+batch_size = 32
+ou_noise_theta = 1 
+ou_noise_sigma = 0.1
+initial_random_steps = 5000
+DDPGagent = DDPGAgent(
+    6410,
+    6,
+    memory_size,
+    batch_size,
+    ou_noise_theta,
+    ou_noise_sigma,
+    load= False,
+    initial_random_steps=initial_random_steps
+)
+
+def grip_state(val):
+    if val <0:
+        return 0
+    else:
+        return 1
 
 
 while supervisor.episodeCount < supervisor.episodeLimit:
-    visualiser1 = visualiser(1, ["Occupancy Grid"], k=1)
-    observation = supervisor.reset()
+    #visualiser1 = visualiser(1, ["Occupancy Grid"], k=1)
+    state = supervisor.reset()
     supervisor.episodeScore = 0
     while True:
-        action = agent()
-        newObservation, reward, done, info = supervisor.step(action)
-        #print(newObservation)
+        action = DDPGagent.select_action([state])
+        #print(action)
+        action = [10*action[0], 10*action[1], grip_state(action[2]), 10*action[3], 10*action[4], grip_state(action[5])]
+        #print(f"....{action}")
+        next_state, reward, done, info = supervisor.step(action)
+        DDPGagent.transition += [reward, next_state, done]
+        DDPGagent.memory.store(*DDPGagent.transition)
+        DDPGagent.total_step +=1
 
         if done:
-            print(supervisor.episodeScore)
+            print(f"Epsiode: {supervisor.episodeCount}, Epsiode Score:{supervisor.episodeScore}")
             supervisor.episodeScoreList.append(supervisor.episodeScore)
+            supervisor.episodeCount +=1
             break 
+        
+        #print(DDPGagent.total_step)
+        
+        if (
+            len(DDPGagent.memory) >= DDPGagent.batch_size 
+            and DDPGagent.total_step > DDPGagent.initial_random_steps
+        ):
+            actor_loss, critic_loss = DDPGagent.update_model()
+            DDPGagent.actor_losses.append(actor_loss)
+            DDPGagent.critic_losses.append(critic_loss)
             
         supervisor.episodeScore += reward
-        observation = newObservation
+        state = next_state
 
-        visualiser1(supervisor.occupancy_grid)
-    
-    plt.close()
+        occ_grid = np.reshape(DDPGagent.transition[0][10:], (80,80))
 
+        #visualiser1(occ_grid)
+    #plt.close()
+
+DDPGagent.save_models()
+
+plt.plot(supervisor.episodeScoreList)
+plt.show()

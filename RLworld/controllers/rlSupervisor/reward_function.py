@@ -37,7 +37,7 @@ def collisions(robot_nodes, block_nodes, ilegal_contacts, supervisor):
 
 def done_check(time, robot_nodes, block_nodes):
     done = True
-    if time >= 10:
+    if time >= 300:
         return done
     for block in block_nodes:
         if block.getDef()[6] == 'R':

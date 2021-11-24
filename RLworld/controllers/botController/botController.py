@@ -11,6 +11,7 @@ from deepbots.robots.controllers.robot_emitter_receiver_csv import RobotEmitterR
 class bot(RobotEmitterReceiverCSV):
     def __init__(self):
         super().__init__()
+        self.timestep = 64
         self.main_gps = self.robot.getDevice("gps_main")
         self.main_gps.enable(self.get_timestep())
         self.compass  = self.robot.getDevice("compass")
@@ -48,7 +49,7 @@ class bot(RobotEmitterReceiverCSV):
             self.receiver.setChannel(1)
     
     def grip(self, grip_pos):
-        if grip_pos ==1:
+        if int(grip_pos) ==1:
             self.gripper_left_motor.setPosition(0.1)
             self.gripper_right_motor.setPosition(0.1)
         else:
@@ -79,6 +80,7 @@ class bot(RobotEmitterReceiverCSV):
         
     
     def use_message_data(self, message):
+        #print(message)
         if self.robot_id == 0:
             m = 0
         else:
@@ -86,8 +88,8 @@ class bot(RobotEmitterReceiverCSV):
         
         self.wheel1.setVelocity(float(message[m]))
         self.wheel2.setVelocity(float(message[m+1]))
-        self.grip(int(message[m+2]))
-        self.grip_state = int(message[m+2])
+        self.grip(float(message[m+2]))
+        self.grip_state = int(float(message[m+2]))
 
         
 
